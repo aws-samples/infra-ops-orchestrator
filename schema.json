@@ -1,0 +1,590 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Bedrock Agent Lambda API for AWS Orchestration",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/create-rds-snapshot": {
+    "post": {
+        "summary": "Create a snapshot of an RDS instance or cluster",
+        "description": "Triggers a Lambda function to create a snapshot of the specified RDS instance or Aurora cluster.",
+        "operationId": "createRdsSnapshot",
+        "tags": ["RDS"],
+        "requestBody": {
+            "required": true,
+            "content": {
+                "application/json": {
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "DBInstanceId": {
+                                "type": "string",
+                                "description": "The identifier of the RDS instance or Aurora cluster"
+                            },
+                            "Region": {
+                                "type": "string",
+                                "description": "The AWS region where the RDS instance or cluster is located"
+                            },
+                            "SnapshotIdentifier": {
+                                "type": "string",
+                                "description": "Optional custom identifier for the snapshot"
+                            }
+                        },
+                        "required": ["DBInstanceId", "Region"]
+                    }
+                }
+            }
+        },
+        "responses": {
+            "200": {
+                "description": "Snapshot creation initiated successfully",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "Status": {
+                                    "type": "string",
+                                    "enum": [
+                                        "RDS Instance Snapshot Creation Initiated",
+                                        "RDS Cluster Snapshot Creation Initiated"
+                                    ],
+                                    "example": "RDS Instance Snapshot Creation Initiated"
+                                },
+                                "DBInstanceIdentifier": {
+                                    "type": "string"
+                                },
+                                "DBClusterIdentifier": {
+                                    "type": "string"
+                                },
+                                "SnapshotIdentifier": {
+                                    "type": "string"
+                                },
+                                "SnapshotType": {
+                                    "type": "string",
+                                    "enum": ["Instance", "Cluster"],
+                                    "example": "Instance"
+                                },
+                                "SnapshotDetails": {
+                                    "type": "object",
+                                    "properties": {
+                                        "ARN": {
+                                            "type": "string",
+                                            "example": "arn:aws:rds:us-west-2:123456789012:snapshot:my-snapshot"
+                                        },
+                                        "Status": {
+                                            "type": "string",
+                                            "example": "creating"
+                                        },
+                                        "PercentProgress": {
+                                            "type": "integer",
+                                            "minimum": 0,
+                                            "maximum": 100,
+                                            "example": 0
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "400": {
+                "description": "Invalid request parameters",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string",
+                                    "example": "Missing required parameter: DBInstanceId"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "404": {
+                "description": "RDS instance or cluster not found",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string",
+                                    "example": "Neither DB instance nor DB cluster found with identifier: my-db"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "500": {
+                "description": "Error occurred",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                },
+                                "details": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+},
+      "/enable-s3-versioning": {
+    "post": {
+        "summary": "Enable versioning for an S3 bucket",
+        "description": "Triggers a Lambda function to enable versioning on the specified S3 bucket.",
+        "operationId": "enableS3Versioning",
+        "tags": ["S3"],
+        "requestBody": {
+            "required": true,
+            "content": {
+                "application/json": {
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "BucketName": {
+                                "type": "string",
+                                "description": "The name of the S3 bucket to enable versioning on"
+                            }
+                        },
+                        "required": ["BucketName"]
+                    }
+                }
+            }
+        },
+        "responses": {
+            "200": {
+                "description": "S3 bucket versioning enabled successfully",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "Status": {
+                                    "type": "string",
+                                    "example": "S3 Versioning Enabled Successfully"
+                                },
+                                "BucketName": {
+                                    "type": "string"
+                                },
+                                "Timestamp": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "example": "2025-01-24 07:30:45"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "500": {
+                "description": "Error occurred",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                },
+                                "details": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+},
+        "/list-ec2-instances": {
+            "post": {
+                "summary": "List EC2 instances in the AWS account",
+                "description": "Triggers a Lambda function to list all EC2 instances in the specified AWS region.",
+                "operationId": "listEc2Instances",
+                "tags": ["EC2"],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "Region": {
+                                        "type": "string",
+                                        "description": "The AWS region where the EC2 instances are located."
+                                    }
+                                },
+                                "required": ["Region"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "EC2 instances listed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "Instances": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "InstanceId": {
+                                                        "type": "string"
+                                                    },
+                                                    "InstanceType": {
+                                                        "type": "string"
+                                                    },
+                                                    "State": {
+                                                        "type": "string"
+                                                    },
+                                                    "LaunchTime": {
+                                                        "type": "string"
+                                                    },
+                                                    "Region": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error occurred",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "details": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/create-ec2-ami-backups": {
+            "post": {
+                "summary": "Create AMI backups for EC2 instances",
+                "description": "Triggers a Lambda function to create AMI backups for the specified EC2 instances in the given region.",
+                "operationId": "createEc2AmiBackups",
+                "tags": ["EC2"],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "Region": {
+                                        "type": "string",
+                                        "description": "The AWS region where the EC2 instances are located."
+                                    },
+                                    "InstanceIdList": {
+                                        "type": "array",
+                                        "description": "List of EC2 instance IDs to create AMIs for.",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "AmiNamePrefix": {
+                                        "type": "string",
+                                        "description": "Prefix for the AMI names."
+                                    }
+                                },
+                                "required": ["Region", "InstanceIdList", "AmiNamePrefix"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "AMI creation initiated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "Status": {
+                                            "type": "string",
+                                            "example": "AMI Creation Triggered"
+                                        },
+                                        "AMIs": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error occurred",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "details": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/start-ec2-instance": {
+            "post": {
+                "summary": "Start an EC2 instance",
+                "description": "Triggers a Lambda function to start an EC2 instance in the specified AWS account.",
+                "operationId": "startEc2Instance",
+                "tags": ["EC2"],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "InstanceId": {
+                                        "type": "string",
+                                        "description": "The ID of the EC2 instance to start."
+                                    },
+                                    "Region": {
+                                        "type": "string",
+                                        "description": "The AWS region where the EC2 instance is located."
+                                    }
+                                },
+                                "required": ["InstanceId", "Region"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully started the EC2 instance",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "Status": {
+                                            "type": "string",
+                                            "example": "started"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error occurred",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "details": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/stop-ec2-instance": {
+            "post": {
+                "summary": "Stop an EC2 instance",
+                "description": "Triggers a Lambda function to stop an EC2 instance in the specified AWS account.",
+                "operationId": "stopEc2Instance",
+                "tags": ["EC2"],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "InstanceId": {
+                                        "type": "string",
+                                        "description": "The ID of the EC2 instance to stop."
+                                    },
+                                    "Region": {
+                                        "type": "string",
+                                        "description": "The AWS region where the EC2 instance is located."
+                                    }
+                                },
+                                "required": ["InstanceId", "Region"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully stopped the EC2 instance",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "Status": {
+                                            "type": "string",
+                                            "example": "stopped"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error occurred",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "details": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/enforce-security-group-rules": {
+            "post": {
+                "summary": "Enforce security group rules for EC2 instances",
+                "description": "Triggers a Lambda function to enforce security group rules for EC2 instances to allow access from a given IP range to a specific port.",
+                "operationId": "enforceSecurityGroupRules",
+                "tags": ["EC2", "Security"],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "Region": {
+                                        "type": "string",
+                                        "description": "The AWS region where the EC2 instances are located."
+                                    },
+                                    "SecurityGroupId": {
+                                        "type": "string",
+                                        "description": "The ID of the security group to update."
+                                    },
+                                    "IpRange": {
+                                        "type": "string",
+                                        "description": "The IP range to allow access from, in CIDR format (e.g., 203.0.113.0/24)."
+                                    },
+                                    "Port": {
+                                        "type": "integer",
+                                        "description": "The port number to allow access to (e.g., 22 for SSH)."
+                                    },
+                                    "Protocol": {
+                                        "type": "string",
+                                        "description": "The protocol to allow access on (e.g., 'tcp')."
+                                    }
+                                },
+                                "required": ["Region", "SecurityGroupId", "IpRange", "Port", "Protocol"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Security group rule applied",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "Status": {
+                                            "type": "string",
+                                            "example": "Security Group Rule Applied"
+                                        },
+                                        "SecurityGroupId": {
+                                            "type": "string"
+                                        },
+                                        "Port": {
+                                            "type": "integer"
+                                        },
+                                        "IpRange": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error occurred",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "details": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
