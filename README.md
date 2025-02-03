@@ -36,11 +36,11 @@ This solution introduces an intelligent Infrastructure Orchestrator Assistant po
 
 1. Clone this repository using below command 
 ```
-git clone "git@github.com:aws-samples/aws-bedrock-ops-orchestrator-iac.git"
+git clone "git@github.com:aws-samples/infra-ops-orchestrator.git"
 ```
 2. Navigate into the project base directory
 ```
-cd aws-bedrock-ops-orchestrator-iac
+cd infra-ops-orchestrator
 ```
 3. Initialize terraform 
 ```
@@ -170,4 +170,3 @@ No resources.
 
 ### Please follow the below video for utility testing
 
-![Demo Video](./assets/videos/aws-bedrock-ops-orchestrator-video.mov)
