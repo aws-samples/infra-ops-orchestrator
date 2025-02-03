@@ -42,22 +42,24 @@ git clone "git@github.com:aws-samples/infra-ops-orchestrator.git"
 ```
 cd infra-ops-orchestrator
 ```
-3. Initialize terraform 
+3. Replace the values present marked with [XXXXX] in the readme file with your details.
+
+4. Initialize terraform 
 ```
 terraform init
 ```
-4. Run terraform plan to view the list of all the resources that this solution with create.  
+5. Run terraform plan to view the list of all the resources that this solution with create.  
 ```
 terraform plan
 ```
 **Note:** Make sure to check the `*tfvars` file and update relevant values before creating a plan. The code needs an existing VPC, KMS Key and an S3 bucket which is used as a source to deploy the Bedrock Action Group Lambda Function.
 
-5. Run terraform apply. The flag --auto-approve is optional. If you don't use that, you will be prompted to enter a confirmation manually (Y/N)
+6. Run terraform apply. The flag --auto-approve is optional. If you don't use that, you will be prompted to enter a confirmation manually (Y/N)
 ```
 terraform apply --auto-approve
 ```
-6. After apply is successful, the "knowledge_base_bucket" will be given as one of the outputs. Upload the sample-datasource.txt into this bucket.
-7. Go to Amazon Bedrock console-> Knowledgebases->Click on the newly created KB-> Datasource-> Click on sync. For more details check [this](https://docs.aws.amazon.com/bedrock/latest/userguide/kb-data-source-sync-ingest.html) documentation. 
+7. After apply is successful, the "knowledge_base_bucket" will be given as one of the outputs. Upload the sample-datasource.txt into this bucket.
+8. Go to Amazon Bedrock console-> Knowledgebases->Click on the newly created KB-> Datasource-> Click on sync. For more details check [this](https://docs.aws.amazon.com/bedrock/latest/userguide/kb-data-source-sync-ingest.html) documentation. 
 
 Also make sure the `user input` is enabled in Agent!
 
