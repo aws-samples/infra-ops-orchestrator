@@ -13,7 +13,7 @@ resource "aws_bedrockagent_agent" "bedrock_agent" {
   instruction                 = var.agent_instructions
 
   # ADVANCED PROMPTS (OPTIONAL)
-  
+
   prompt_override_configuration {
     prompt_configurations {
       base_prompt_template = file("${path.module}/prompt_templates/pre_processing.txt")
