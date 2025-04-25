@@ -212,6 +212,317 @@
         }
     }
 },
+        "/list-security-groups": {
+            "post": {
+                "summary": "List security groups in an AWS region",
+                "description": "Triggers a Lambda function to list all security groups in the specified AWS region.",
+                "operationId": "listSecurityGroups",
+                "tags": ["EC2", "Security"],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "Region": {
+                                        "type": "string",
+                                        "description": "The AWS region where to list security groups"
+                                    }
+                                },
+                                "required": ["Region"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved security groups",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "Status": {
+                                            "type": "string",
+                                            "example": "Security Groups Retrieved Successfully"
+                                        },
+                                        "SecurityGroups": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "GroupId": {
+                                                        "type": "string"
+                                                    },
+                                                    "GroupName": {
+                                                        "type": "string"
+                                                    },
+                                                    "Description": {
+                                                        "type": "string"
+                                                    },
+                                                    "VpcId": {
+                                                        "type": "string"
+                                                    },
+                                                    "InboundRules": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "OutboundRules": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "Tags": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "Count": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error occurred",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "details": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+"/create-security-group": {
+    "post": {
+        "summary": "Create a new security group",
+        "description": "Triggers a Lambda function to create a new security group with specified rules and tags.",
+        "operationId": "createSecurityGroup",
+        "tags": ["EC2", "Security"],
+        "requestBody": {
+            "required": true,
+            "content": {
+                "application/json": {
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "Region": {
+                                "type": "string",
+                                "description": "The AWS region where to create the security group"
+                            },
+                            "GroupName": {
+                                "type": "string",
+                                "description": "Name for the new security group"
+                            },
+                            "Description": {
+                                "type": "string",
+                                "description": "Description for the security group"
+                            },
+                            "VpcId": {
+                                "type": "string",
+                                "description": "Optional VPC ID where the security group should be created"
+                            },
+                            "IngressRules": {
+                                "type": "array",
+                                "description": "Array of ingress rules",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "IpProtocol": {
+                                            "type": "string",
+                                            "example": "tcp"
+                                        },
+                                        "FromPort": {
+                                            "type": "integer",
+                                            "example": 22
+                                        },
+                                        "ToPort": {
+                                            "type": "integer",
+                                            "example": 22
+                                        },
+                                        "IpRanges": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "CidrIp": {
+                                                        "type": "string",
+                                                        "example": "0.0.0.0/0"
+                                                    },
+                                                    "Description": {
+                                                        "type": "string",
+                                                        "example": "SSH access"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "EgressRules": {
+                                "type": "array",
+                                "description": "Array of egress rules",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "IpProtocol": {
+                                            "type": "string",
+                                            "example": "-1"
+                                        },
+                                        "FromPort": {
+                                            "type": "integer",
+                                            "example": -1
+                                        },
+                                        "ToPort": {
+                                            "type": "integer",
+                                            "example": -1
+                                        },
+                                        "IpRanges": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "CidrIp": {
+                                                        "type": "string",
+                                                        "example": "0.0.0.0/0"
+                                                    },
+                                                    "Description": {
+                                                        "type": "string",
+                                                        "example": "All outbound traffic"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "Tags": {
+                                "type": "object",
+                                "description": "Key-value pairs for tagging the security group",
+                                "additionalProperties": {
+                                    "type": "string"
+                                },
+                                "example": {
+                                    "Environment": "Production",
+                                    "Project": "WebApp"
+                                }
+                            }
+                        },
+                        "required": ["Region", "GroupName", "Description"]
+                    }
+                }
+            }
+        },
+        "responses": {
+            "200": {
+                "description": "Security group created successfully",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "Status": {
+                                    "type": "string",
+                                    "example": "Security Group Created Successfully"
+                                },
+                                "SecurityGroup": {
+                                    "type": "object",
+                                    "properties": {
+                                        "GroupId": {
+                                            "type": "string"
+                                        },
+                                        "GroupName": {
+                                            "type": "string"
+                                        },
+                                        "Description": {
+                                            "type": "string"
+                                        },
+                                        "VpcId": {
+                                            "type": "string"
+                                        },
+                                        "InboundRules": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "OutboundRules": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "Tags": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "400": {
+                "description": "Invalid request parameters",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string",
+                                    "example": "Missing required parameter: GroupName"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "500": {
+                "description": "Error occurred",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                },
+                                "details": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+},
         "/list-ec2-instances": {
             "post": {
                 "summary": "List EC2 instances in the AWS account",
