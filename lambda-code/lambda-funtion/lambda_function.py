@@ -25,7 +25,110 @@ def get_cost_report(start_date, end_date, granularity='DAILY'):
         print(f"Error retrieving cost report: {str(e)}")
         return {"Error": str(e)}
 
-# Function to enforce security group rules
+def list_security_groups(region):
+    """
+    List all security groups in a given region
+    """
+    try:
+        ec2_client = boto3.client('ec2', region_name=region)
+        response = ec2_client.describe_security_groups()
+        
+        security_groups = []
+        for sg in response['SecurityGroups']:
+            security_groups.append({
+                'GroupId': sg['GroupId'],
+                'GroupName': sg['GroupName'],
+                'Description': sg['Description'],
+                'VpcId': sg.get('VpcId', 'Default VPC'),
+                'InboundRules': sg['IpPermissions'],
+                'OutboundRules': sg['IpPermissionsEgress'],
+                'Tags': sg.get('Tags', [])
+            })
+            
+        return {
+            "Status": "Security Groups Retrieved Successfully",
+            "SecurityGroups": security_groups,
+            "Count": len(security_groups)
+        }
+    except Exception as e:
+        print(f"Error listing security groups: {str(e)}")
+        return {"Error": str(e)}
+
+
+def create_security_group(region, group_name, description, vpc_id=None, ingress_rules=None, egress_rules=None, tags=None):
+    """
+    Create a new security group with specified rules
+    """
+    try:
+        ec2_client = boto3.client('ec2', region_name=region)
+        
+        # Prepare create security group parameters
+        create_params = {
+            'GroupName': group_name,
+            'Description': description
+        }
+        
+        if vpc_id:
+            create_params['VpcId'] = vpc_id
+            
+        # Create the security group
+        response = ec2_client.create_security_group(**create_params)
+        security_group_id = response['GroupId']
+        
+        # Add tags if provided
+        if tags:
+            ec2_client.create_tags(
+                Resources=[security_group_id],
+                Tags=[{'Key': k, 'Value': v} for k, v in tags.items()]
+            )
+        
+        # Add ingress rules if provided
+        if ingress_rules:
+            ec2_client.authorize_security_group_ingress(
+                GroupId=security_group_id,
+                IpPermissions=ingress_rules
+            )
+            
+        # Add egress rules if provided
+        if egress_rules:
+            # First revoke default egress rule
+            ec2_client.revoke_security_group_egress(
+                GroupId=security_group_id,
+                IpPermissions=[{
+                    'IpProtocol': '-1',
+                    'FromPort': -1,
+                    'ToPort': -1,
+                    'IpRanges': [{'CidrIp': '0.0.0.0/0'}]
+                }]
+            )
+            # Then add specified egress rules
+            ec2_client.authorize_security_group_egress(
+                GroupId=security_group_id,
+                IpPermissions=egress_rules
+            )
+            
+        # Get the created security group details
+        sg_response = ec2_client.describe_security_groups(GroupIds=[security_group_id])
+        created_sg = sg_response['SecurityGroups'][0]
+        
+        return {
+            "Status": "Security Group Created Successfully",
+            "SecurityGroup": {
+                'GroupId': created_sg['GroupId'],
+                'GroupName': created_sg['GroupName'],
+                'Description': created_sg['Description'],
+                'VpcId': created_sg.get('VpcId', 'Default VPC'),
+                'InboundRules': created_sg['IpPermissions'],
+                'OutboundRules': created_sg['IpPermissionsEgress'],
+                'Tags': created_sg.get('Tags', [])
+            }
+        }
+    except Exception as e:
+        print(f"Error creating security group: {str(e)}")
+        return {"Error": str(e)}
+
+
+
 def enforce_security_group_rules(security_group_id, region, protocol, port, ip_range):
     ec2_client = boto3.client('ec2', region_name=region)
     
@@ -305,6 +408,29 @@ def lambda_handler(event, context):
             result = create_s3_lifecycle_policy(params['BucketName'], params['LifecyclePolicy'])
         elif api_path == '/enable-rds-multi-az':
             result = enable_rds_multi_az(params['DBInstanceId'], params['Region'])
+        elif api_path == '/list-security-groups':
+            if 'Region' not in params:
+                raise ValueError("Missing required parameter: Region")
+            result = list_security_groups(params['Region'])
+        elif api_path == '/create-security-group':
+            required_params = ['Region', 'GroupName', 'Description']
+            if not all(key in params for key in required_params):
+                raise ValueError(f"Missing required parameters. Required: {required_params}")
+            
+            # Convert string representations of rules to proper format if provided
+            ingress_rules = json.loads(params.get('IngressRules', '[]')) if params.get('IngressRules') else None
+            egress_rules = json.loads(params.get('EgressRules', '[]')) if params.get('EgressRules') else None
+            tags = json.loads(params.get('Tags', '{}')) if params.get('Tags') else None
+            
+            result = create_security_group(
+                params['Region'],
+                params['GroupName'],
+                params['Description'],
+                params.get('VpcId'),
+                ingress_rules,
+                egress_rules,
+                tags
+            )
         elif api_path == '/create-ec2-ami-backups':
             required_params = ['Region', 'InstanceIdList', 'AmiNamePrefix']
             if not all(key in params for key in required_params):
